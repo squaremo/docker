@@ -1,4 +1,5 @@
-# Docker Plugins MVP
+Docker Plugins MVP
+==================
 
 Plugins provide a mechanism for hooking into the Docker engine to extend its behavior.
 
@@ -6,7 +7,7 @@ HTTP over a local UNIX socket is used to communicate between Docker and its plug
 
 Plugins are distributed as containers.
 
-## Usage
+# Usage
 
 Plugins can be loaded using a special `docker plugin-load` command, as follows:
 
@@ -22,15 +23,13 @@ $ docker run -d -e PLUGIN_TYPE=volume -e PLUGIN_NAME=flocker \
 	clusterhq/flocker-plugin
 ```
 
-It also marks the plugin container as hidden from `docker ps`.
-
 Docker then waits for the plugin to start listening on the socket, and according to the type of plugin, sends it HTTP requests on certain events.
 
-## Types of plugin
+# Types of plugin
 
 Each plugin type defines a straightforward (MVP) protocol.
 
-### Volume
+## Volume
 
 The simplest of plugin types, `volume` provides a single request-response type:
 
@@ -40,8 +39,7 @@ The simplest of plugin types, `volume` provides a single request-response type:
 {DockerVolumesExtensionVersion: 1,
  Action: "create",
  HostPath: "/path",
- ContainerID: "abcdef123",
-}
+ ContainerID: "abcdef123"}
 ```
 
 **Response**
@@ -54,10 +52,13 @@ The simplest of plugin types, `volume` provides a single request-response type:
 In the initial version, if the plugin responds with an empty string (`""`) as the `ModifiedHostPath`, the response is ignored.
 
 See reference implementation:
-* https://github.com/cpuguy83/docker/compare/ddb366ee9a07e3feab766cc712c9683ad0c3c309
-* https://github.com/ClusterHQ/powerstrip-flocker/compare/docker-volume-extension
+
+* [Docker volumes extension mechanism](https://github.com/cpuguy83/docker/compare/ddb366ee9a07e3feab766cc712c9683ad0c3c309)
+* [Flocker extension](https://github.com/clusterhq/powerstrip-flocker/compare/docker-volume-extension)
 
 **Demo**
+
+Despite the name, this demo does not use powerstrip!
 
 ```
 $ git clone https://github.com/clusterhq/powerstrip-flocker
@@ -72,17 +73,61 @@ node2$ docker run -v /flocker/test:/data ubuntu cat /data/file.txt
 fish
 ```
 
-### API
+In future, we will want to extend this to notify volume extensions when containers start and stop, so that the underlying volumes mechanism can hold and release *leases* on volumes.
+
+### Volumes CLI
+
+We may want to extend the volumes CLI in due course, so you can do something like the following:
+
+```
+$ docker volume create nicevol --size=50G --tier=ssd --replication=global
+$ docker run -v //nicevol:/data dockerfile/postgresql
+```
+
+This would result in similar API requests being made.
+
+Other `docker volume` commands which could make sense are e.g. `docker volume snapshot` and `docker volume rm` which will need corresponding extension API message types to be defined.
+
+## API
+
+Extensions to the Docker remote API (extension type `api`) can be achieved via a [Powerstrip-like protocol](https://github.com/clusterhq/powerstrip#pre-hook-adapter-endpoints-receive-posts-like-this).
+The corresponding limitations will initially apply to the types of requests which can be processed, but this is acceptable for an MVP.
+
+## Network
+
+Network extensions exist to implement the following UX:
+
+```
+$ docker network create greatnet
+$ docker run --net=greatnet --ip=1.2.3.4 dockerfile/postgresql
+```
+
+(and of course: `$ docker run --net=greatnet --ip=1.2.3.4 -v //nicevol:/data dockerfile/postgresql` should also be possible, when both networking and storage plugins are loaded)
+
+**Implementation note:** Whether `docker network` calls the Docker client binary and Docker daemon, or whether the first class networks functionality is implemented by separate binary *should be transparent to the plugin*.
+
+Similar request-response pairs as for volumes can be defined for network `create`, `add-container`, etc.
 
 
+# Semantics
 
-### Network
+This area needs fleshing out.
 
-???
+* Should chaining be possible?
+* What happens when you load several of the same type of extension?
+* What happens when a hook or pre-hook fails?
+  What about post-hooks?
+  Do we need special cleanup hooks?
 
-## Possible future functionality
+# Possible future functionality
 
 * While waiting for the plugin to initialize, Docker should not allow any API requests to succeed.
   This is to avoid startup race where e.g. `create` requests might not get passed through the plugins.
 * Plugins could negotiate with Docker via an initial handshake HTTP request.
 * Plugins could use a protocol other than HTTP.
+* Loading a plugin marks the plugin's container as hidden from `docker ps`.
+
+# Areas for discussion
+
+* Should the plugin endpoints all be a single endpoint, or should they define e.g. `/v1/networks`, `/v1/volumes` etc?
+  Certainly for the `api` type plugins, `POST`ing them all to a single endpoint made sense for Powerstrip.
