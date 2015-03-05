@@ -32,7 +32,19 @@ $ docker run -d -e $ARGS \
 
 Loading a plugin forces it to always be loaded when Docker restarts (and Docker doesn't respond to API requests until it completes loading all its plugins).
 
-Docker then waits for the plugin to start listening on the socket (it polls the socket until it gets a successful response to an HTTP query to `/v1/plugin/handshake` on the socket, which returns with just a list of subsystems the plugin is interested in: `["volume"]`). According to the type of plugin which is negotiated in the handshake, Docker registers the plugin to send it HTTP requests on certain events.
+Docker then waits for the plugin to start listening on the socket (it polls the socket until it gets a successful response to an HTTP query to `/v1/plugin/handshake` on the socket, which returns with just a list of subsystems the plugin is interested in - response defined below).
+According to the type of plugin which is negotiated in the handshake, Docker registers the plugin to send it HTTP requests on certain events.
+
+Plugins should name themselves in the response, which should be in this format:
+
+```
+{PluginNegotiationVersion: 1,
+ InterestedIn: ["volume"],
+ PluginName: "flocker",
+```
+
+Every event should be sent to every plugin registered for that subsystem for now.
+Later the handshake can include more granular negotiation over which events it wants to receive.
 
 Other `plugin` subcommands can include `list`, `status`, `upgrade`, and `unload`.
 
