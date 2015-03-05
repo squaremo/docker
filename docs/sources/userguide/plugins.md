@@ -38,9 +38,8 @@ According to the type of plugin which is negotiated in the handshake, Docker reg
 Plugins should name themselves in the response, which should be in this format:
 
 ```
-{PluginNegotiationVersion: 1,
- InterestedIn: ["volume"],
- PluginName: "flocker",
+{InterestedIn: ["volume"],
+ PluginName: "flocker"}
 ```
 
 Every event should be sent to every plugin registered for that subsystem for now.
@@ -54,22 +53,20 @@ Each plugin type defines a straightforward (MVP) protocol.
 
 ## Volume
 
-The simplest of plugin types, `volume` provides a single request-response type:
+The simplest of plugin types, `volume` provides a single request-response type on `POST /v1/volumes` (`POST ~= create`):
 
 **Request**
 
 ```
-{DockerVolumesExtensionVersion: 1,
- Action: "create",
- HostPath: "/path",
+{HostPath: "/path",
  ContainerID: "abcdef123"}
 ```
 
 **Response**
 
 ```
-{DockerVolumesExtensionVersion: 1,
- ModifiedHostPath: "/newpath"} 
+{HostPath: "/newpath",
+ ContainerID: "abcdef123"}
 ```
 
 In the initial version, if the plugin responds with an empty string (`""`) as the `ModifiedHostPath`, the response is ignored.
