@@ -12,7 +12,7 @@ Plugins are distributed as containers.
 Plugins can be loaded using a special `docker plugin load` command, as follows:
 
 ```
-$ docker plugin load clusterhq/flocker-plugin
+$ docker plugin load -e $ARGS clusterhq/flocker-plugin $@
 [... fetching...]
 Plugin flocker:v0.1 loaded and registered with extension points:
 * volumes
@@ -22,10 +22,10 @@ Plugin flocker activated.
 This is really just syntactic sugar for the following:
 
 ```
-$ docker run -d \
+$ docker run -d -e $ARGS \
 	-v /var/run/docker-plugins/flocker.sock:/var/run/plugin.sock \
 	-v /var/run/docker.sock:/var/run/docker.sock \
-	clusterhq/flocker-plugin
+	clusterhq/flocker-plugin $@
 ```
 
 (The docker socket should only be mounted if the plugin is started with `--priviliged`.)
