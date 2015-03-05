@@ -9,10 +9,14 @@ Plugins are distributed as containers.
 
 # Usage
 
-Plugins can be loaded using a special `docker plugin-load` command, as follows:
+Plugins can be loaded using a special `docker plugin load` command, as follows:
 
 ```
-$ docker plugin-load volume:flocker clusterhq/flocker-plugin
+$ docker plugin load clusterhq/flocker-plugin:v0.1
+[... fetching...]
+Plugin flocker:v0.1 loaded and registered with extension points:
+* volumes
+Plugin flocker activated.
 ```
 
 This is really just syntactic sugar for the following:
@@ -23,7 +27,7 @@ $ docker run -d -e PLUGIN_TYPE=volume -e PLUGIN_NAME=flocker \
 	clusterhq/flocker-plugin
 ```
 
-Docker then waits for the plugin to start listening on the socket, and according to the type of plugin, sends it HTTP requests on certain events.
+Docker then waits for the plugin to start listening on the socket (it polls the socket until it gets a successful response to an HTTP query to `/v1/plugin/handshake` on the socket, which returns with just a list of subsystems the plugin is interested in `["volume"]`). According to the type of plugin which is negotiated in the handshake, Docker registers the plugin to send it HTTP requests on certain events.
 
 # Types of plugin
 
