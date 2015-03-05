@@ -53,6 +53,8 @@ Each plugin type defines a straightforward (MVP) protocol.
 
 ## Volume
 
+We will start with this first because it is has the tiniest interface.
+
 The simplest of plugin types, `volume` provides a single request-response type on `POST /v1/volumes` (`POST ~= create`):
 
 **Request**
