@@ -22,10 +22,13 @@ Plugin flocker activated.
 This is really just syntactic sugar for the following:
 
 ```
-$ docker run -d -e \
+$ docker run -d \
 	-v /var/run/docker-plugins/flocker.sock:/var/run/plugin.sock \
+	-v /var/run/docker.sock:/var/run/docker.sock \
 	clusterhq/flocker-plugin
 ```
+
+(The docker socket should only be mounted if the plugin is started with `--priviliged`.)
 
 Docker then waits for the plugin to start listening on the socket (it polls the socket until it gets a successful response to an HTTP query to `/v1/plugin/handshake` on the socket, which returns with just a list of subsystems the plugin is interested in `["volume"]`). According to the type of plugin which is negotiated in the handshake, Docker registers the plugin to send it HTTP requests on certain events.
 
