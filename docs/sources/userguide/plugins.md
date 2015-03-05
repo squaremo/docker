@@ -7,6 +7,8 @@ HTTP over a local UNIX socket is used to communicate between Docker and its plug
 
 Plugins are distributed as containers.
 
+This is targeted at Docker 1.7.
+
 # Usage
 
 Plugins can be loaded using a special `docker plugin load` command, as follows:
