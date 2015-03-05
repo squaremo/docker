@@ -129,7 +129,6 @@ This area needs fleshing out.
 
 * While waiting for the plugin to initialize, Docker should not allow any API requests to succeed.
   This is to avoid startup race where e.g. `create` requests might not get passed through the plugins.
-* Plugins could negotiate with Docker via an initial handshake HTTP request.
 * Plugins could use a protocol other than HTTP.
 * Loading a plugin marks the plugin's container as hidden from `docker ps`.
 
