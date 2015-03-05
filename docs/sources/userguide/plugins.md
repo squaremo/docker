@@ -22,7 +22,7 @@ Plugin flocker activated.
 This is really just syntactic sugar for the following:
 
 ```
-$ docker run -d -e PLUGIN_TYPE=volume -e PLUGIN_NAME=flocker \
+$ docker run -d -e \
 	-v /var/run/docker-plugins/flocker.sock:/var/run/plugin.sock \
 	clusterhq/flocker-plugin
 ```
@@ -86,7 +86,7 @@ In future, we will want to extend this to notify volume extensions when containe
 We may want to extend the volumes CLI in due course, so you can do something like the following:
 
 ```
-$ docker volume create nicevol --size=50G --tier=ssd --replication=global
+$ docker volume create --size=50G --tier=ssd --replication=global nicevol
 $ docker run -v //nicevol:/data dockerfile/postgresql
 ```
 
