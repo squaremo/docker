@@ -97,7 +97,7 @@ In future, we will want to extend this to notify volume extensions when containe
 
 ### Volumes CLI
 
-We may want to extend the volumes CLI in due course, so you can do something like the following:
+We may want to extend some (as-yet non-existent) docker core volumes CLI in due course, so you can do something like the following:
 
 ```
 $ docker volume create --driver flocker \
