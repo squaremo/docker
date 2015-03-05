@@ -86,8 +86,9 @@ In future, we will want to extend this to notify volume extensions when containe
 We may want to extend the volumes CLI in due course, so you can do something like the following:
 
 ```
-$ docker volume create --size=50G --tier=ssd --replication=global nicevol
-$ docker run -v //nicevol:/data dockerfile/postgresql
+$ docker volume create --driver flocker \
+	--metadata size=50G,tier=ssd,replication=global nicevol
+$ docker run -v /flocker/nicevol:/data dockerfile/postgresql
 ```
 
 This would result in similar API requests being made.
