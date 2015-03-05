@@ -69,7 +69,7 @@ The simplest of plugin types, `volume` provides a single request-response type o
  ContainerID: "abcdef123"}
 ```
 
-In the initial version, if the plugin responds with an empty string (`""`) as the `ModifiedHostPath`, the response is ignored.
+In the initial version, if the plugin responds with a 404 then the response is ignored.
 
 See reference implementation:
 
