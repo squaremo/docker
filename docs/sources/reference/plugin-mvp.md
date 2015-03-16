@@ -25,8 +25,9 @@ Docker blocks on waiting for a successful handshake with the plugin on `/var/run
 
 ## `POST /v1/handshake`
 
-Request: POST with empty body
-Response: `application/json` as follows:
+**Request:** POST with empty body
+
+**Response:** `application/json` as follows:
 
 ```
 {
@@ -68,6 +69,8 @@ The simplest of plugin types, `volume` provides a single request-response type o
 {HostPath: "/newpath",
  ContainerID: "abcdef123"}
 ```
+
+# Caveats
 
 NB: plugin loading order is undefined, so plugins should not depend on eachother.
 
