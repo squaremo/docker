@@ -25,7 +25,7 @@ This is really just syntactic sugar for the following:
 
 ```
 $ docker run -d -e $ARGS \
-	-v /var/lib/docker/.../<container_id>/plugin.sock:/var/run/docker/plugin.sock \
+	-v /var/lib/docker/containers/<container_id>/plugin/:/var/run/docker/ \
 	-v /var/run/docker.sock:/var/run/docker.sock \
 	clusterhq/flocker-plugin $@
 ```
@@ -34,14 +34,13 @@ $ docker run -d -e $ARGS \
 
 Loading a plugin forces it to always be loaded when Docker restarts (and Docker doesn't respond to API requests until it completes loading all its plugins).
 
-Docker then waits for the plugin to start listening on the socket (it polls the socket until it gets a successful response to an HTTP query to `/v1/plugin/handshake` on the socket, which returns with just a list of subsystems the plugin is interested in - response defined below).
+Docker then waits for the plugin to start listening on the socket (it polls the socket until it gets a successful response to an HTTP query to `/v1/handshake` on the socket, which returns with just a list of subsystems the plugin is interested in - response defined below).
 According to the type of plugin which is negotiated in the handshake, Docker registers the plugin to send it HTTP requests on certain events.
 
 Plugins should name themselves in the response, which should be in this format:
 
 ```
 {
- DockerPluginHandshakeVersion: 1,
  InterestedIn: ["volume"],
  PluginName: "flocker"
 }
