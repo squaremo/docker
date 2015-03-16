@@ -25,7 +25,7 @@ This is really just syntactic sugar for the following:
 
 ```
 $ docker run -d -e $ARGS \
-	-v /var/run/docker-plugins/flocker.sock:/var/run/plugin.sock \
+	-v /var/lib/docker/.../<container_id>/plugin.sock:/var/run/docker/plugin.sock \
 	-v /var/run/docker.sock:/var/run/docker.sock \
 	clusterhq/flocker-plugin $@
 ```
@@ -40,8 +40,11 @@ According to the type of plugin which is negotiated in the handshake, Docker reg
 Plugins should name themselves in the response, which should be in this format:
 
 ```
-{InterestedIn: ["volume"],
- PluginName: "flocker"}
+{
+ DockerPluginHandshakeVersion: 1,
+ InterestedIn: ["volume"],
+ PluginName: "flocker"
+}
 ```
 
 Every event should be sent to every plugin registered for that subsystem for now.
