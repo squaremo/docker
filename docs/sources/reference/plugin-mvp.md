@@ -34,10 +34,10 @@ Docker blocks on waiting for a successful handshake with the plugin on `/var/run
 ```
 {
  InterestedIn: ["volume"],
- PluginName: "flocker",
- PluginAuthor: "Luke Marsden <luke@clusterhq.com>",
- PluginOrg: "ClusterHQ, Inc.",
- PluginWebsite: "https://clusterhq.com/",
+ Name: "flocker",
+ Author: "Luke Marsden <luke@clusterhq.com>",
+ Org: "ClusterHQ, Inc.",
+ Website: "https://clusterhq.com/",
 }
 ```
 
@@ -75,6 +75,10 @@ The simplest of plugin types, `volume` provides a single request-response type o
 # Caveats
 
 NB: plugin loading order is undefined, so plugins should not depend on eachother.
+
+# Versioning strategy
+
+When we bump `/v1/handshake` to `/v2/handshake` etc, we can have Docker start by trying to do the highest numbered handshake it can, and then iterate backwards through supported handshake versions until it finds one which matches (ie does not give a 404).
 
 ---
 
