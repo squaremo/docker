@@ -39,18 +39,18 @@ Docker blocks on waiting for a successful handshake with the plugin on `/var/run
 }
 ```
 
-PluginName is a human readable short string identifying the plugin.
+`PluginName` is a human readable short string identifying the plugin.
 
-InterestedIn is a list of extension points.
+`InterestedIn` is a list of extension points.
 
 Extension points currently supported are:
 
-* volume - called when a volume is bind-mounted into a container at create or start time
+* `volume` - called when a volume is bind-mounted into a container at create or start time
 
 Planned extension points include:
 
-* api - pre-hooks and post-hooks on the Docker remote API (powerstrip-style)
-* network - called when ???
+* `api` - pre-hooks and post-hooks on the Docker remote API (powerstrip-style)
+* `network` - called when ???
 
 ## `POST /v1/volume/volumes`
 
