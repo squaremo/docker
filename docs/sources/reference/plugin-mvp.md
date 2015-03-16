@@ -10,13 +10,15 @@ $ docker run --plugin \
     clusterhq/flocker-plugin
 ```
 
+Note the new `--plugin` argument.
+
 Internally this translates into:
 
 ```
-$ docker run -d -e $ARGS \
+$ docker run -d \
 	-v /var/lib/docker/containers/<container_id>/plugin/:/var/run/docker/ \
 	-v /var/run/docker.sock:/var/run/docker.sock \
-	clusterhq/flocker-plugin $@
+	clusterhq/flocker-plugin
 ```
 
 Docker blocks on waiting for a successful handshake with the plugin on `/var/run/docker/plugin.sock` with an HTTP `POST /v1/handshake` with an empty body.
