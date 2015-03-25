@@ -52,7 +52,9 @@ Extension points currently supported are:
 Planned extension points include:
 
 * `api` - pre-hooks and post-hooks on the Docker remote API (powerstrip-style)
-* `network` - called when ???
+* `net-attach` - called when docker has created a namespace for a
+  container but before it runs the container entrypoint, to attach a
+  network interface to the container.
 
 ## `POST /v1/volume/volumes`
 
@@ -70,6 +72,27 @@ The simplest of plugin types, `volume` provides a single request-response type o
 ```
 {HostPath: "/newpath",
  ContainerID: "abcdef123"}
+```
+
+## POST /v1/net/attach
+
+The network attach plugin type provides an RPC for attaching a network
+interface to a container. The `Endpoint` argument is stringly-typed
+(i.e., interpreted by the plugin).
+
+**Request**
+
+```
+{ContainerID: "ca88a6e",
+ NamespacePath: "/proc/x/ns/net",
+ Endpoint: "10.2.68.4/24"}
+```
+
+**Response**
+
+```
+{IPAddress: "10.2.68.4",
+ ContainerID: "ca88a6e"}
 ```
 
 # Caveats
