@@ -126,15 +126,48 @@ Network extensions exist to implement the following UX:
 
 ```
 $ docker network create greatnet
-$ docker run --net=greatnet --ip=1.2.3.4 dockerfile/postgresql
+$ docker endpoint create greatnet foo
+$ docker run --net=greatnet/foo dockerfile/postgresql
 ```
 
-(and of course: `$ docker run --net=greatnet --ip=1.2.3.4 -v //nicevol:/data dockerfile/postgresql` should also be possible, when both networking and storage plugins are loaded)
+(and of course: `$ docker run --net=greatnet/foo -v //nicevol:/data dockerfile/postgresql` should also be possible, when both networking and storage plugins are loaded)
+
+For the most part, docker itself maintains the state of the network
+model (network creation, endpoint creation). The extension point is
+for docker to ask the plugin to attach an endpoint to a container.
+
+### Endpoint attach
+
+## POST /v1/net/attach
+
+The network attach RPC is for attaching a network endpoint to a
+container. The `Endpoint` argument is stringly-typed (i.e.,
+interpreted by the plugin); for example, it may refer to an endpoint
+name (which must then be resolved by the plugin) or an explicit IP
+address.
+
+The RPC is invoked by docker after the container's network namespace
+is created, and before the container's entrypoint process is
+started. The plugin must insert a network interface with the endpoint
+IP address into the container's network namespace, and return that IP
+address.
+
+**Request**
+
+```
+{ContainerID: "ca88a6e",
+ NamespacePath: "/proc/pid/ns/net",
+ Endpoint: "10.2.68.4/24"}
+```
+
+**Response**
+
+```
+{IPAddress: "10.2.68.4",
+ ContainerID: "ca88a6e"}
+```
 
 **Implementation note:** Whether `docker network` calls the Docker client binary and Docker daemon, or whether the first class networks functionality is implemented by separate binary *should be transparent to the plugin*.
-
-Similar request-response pairs as for volumes can be defined for network `create`, `add-container`, etc.
-
 
 # Semantics
 
