@@ -723,11 +723,26 @@ func (container *Container) AllocateNetwork() error {
 		return nil
 	}
 
-	var err error
+	var (
+		err    error
+		driver string
+	)
+
+	if mode.IsRemote() {
+		parts := strings.SplitN(string(mode), ":", 2)
+		mode = runconfig.NetworkMode(parts[1])
+		driver = parts[0]
+	}
 
 	n, err := container.daemon.netController.NetworkByName(string(mode))
-	if err != nil {
-		return fmt.Errorf("error locating network with name %s: %v", string(mode), err)
+	if n == nil {
+		if driver != "" {
+			if n, err = container.daemon.netController.NewNetwork(driver, string(mode)); err != nil {
+				return err
+			}
+		} else {
+			return fmt.Errorf("no network found for network name %s", string(mode))
+		}
 	}
 
 	createOptions, err := container.buildCreateEndpointOptions()
