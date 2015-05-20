@@ -36,6 +36,7 @@ func (s *Server) newServer(proto, addr string) (Server, error) {
 
 func (s *Server) AcceptConnections(d *daemon.Daemon) {
 	s.daemon = d
+	s.registerSubRouter()
 	// close the lock so the listeners start accepting connections
 	select {
 	case <-s.start:
