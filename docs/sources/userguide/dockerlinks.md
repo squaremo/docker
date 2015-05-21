@@ -8,8 +8,10 @@ In [the Using Docker section](/userguide/usingdocker), you saw how you can
 connect to a service running inside a Docker container via a network
 port. But a port connection is only one way you can interact with services and
 applications running inside Docker containers. In this section, we'll briefly revisit
-connecting via a network port and then we'll introduce you to another method of access:
-container linking.
+connecting via a network port and then we'll introduce you to other method of access:
+
+- container linking
+- container networking
 
 ## Connect using network port mapping
 
@@ -330,6 +332,74 @@ allowing linked communication to continue.
     172.17.0.7  aed84ee21bde
     . . .
     172.17.0.9  db
+
+## Connect with Networks
+
+> Note: This feature is experimental
+
+Docker's linking system hardcodes a link between two running containers. In order to 
+change a link, you must restart a container. To avoid this, the 
+[Ambassador Pattern](../articles/ambassador_pattern_linking) was developed which requires
+ deploying additional containers to handle linking. To simplify this, we have introduced
+Networks.
+
+### What are Networks?
+
+Networks are simply a group of containers that can communicate with eachother.
+They are useful for segmenting groups of containers and applying some form of policy, via
+`iptables` for example, or to organise all containers for a given application stack.
+
+### Example
+
+Lets create a network for our application called `yoda`:
+
+    $ docker network create yoda
+    a10ef560538f6221c225957c9dc3d497c749e34c3f92c2964385601ad02bca53
+
+The `yoda` application consists of one nginx container and one database. Let's create those now,
+but lets assign them static IP addressses.
+
+    $ docker run -itd --name web1 --net=yoda -l ip=192.168.99.10 nginx
+    dc50c677fbb7acdcd150c7f9109958e50398a62a62c500189ce723ac498c618e
+    $ docker run -itd --name db1 --net=yoda -l ip=192.168.88.20 redis
+    153a96bbae2e7cf48594ffd84691328e62e19f8ac2ec53ad492f1518b918a4c0
+
+Ok, now lets see if they can communicate!
+
+    $ docker exec web ping 192.168.99.20
+    PING 192.168.99.20: 48 data bytes
+    56 bytes from 192.168.99.20: icmp_seq=0 ttl=64 time=0.249 ms
+    56 bytes from 192.168.99.20: icmp_seq=1 ttl=64 time=0.252 ms
+    56 bytes from 192.168.99.20: icmp_seq=2 ttl=64 time=0.250 ms
+
+    $ docker exec db ping 192.168.99.10
+    PING 192.168.99.10: 48 data bytes
+    56 bytes from 192.168.99.10: icmp_seq=0 ttl=64 time=0.262 ms
+    56 bytes from 192.168.99.10: icmp_seq=1 ttl=64 time=0.259 ms
+    56 bytes from 192.168.99.10: icmp_seq=2 ttl=64 time=0.256 ms
+
+Great. So now lets try to add some more web servers as we think `yoda` is going to be a popular app!
+
+    $ docker run -itd --name web2 --net=yoda -l ip=192.168.99.11 nginx
+    
+    $ docker run -itd --name web3 --net=yoda -l ip=192.168.99.12 nginx
+    
+Ok, now lets plumb this through to the outside world using an HAProxy container:
+
+    $ docker run -itd -p 80:80 --name proxy --net=yoda -l ip=192.168.99.200 haproxy
+
+And finally, lets test that this application is working!
+
+    $ curl localhost:80
+    <html>
+    <head></head>
+    <body>
+      <h1>Do or do not, there is no try</h1>
+    </body>
+    </html>
+
+> Note: In future, we hope to remove the need for IP Addresses completely, allowing you to 
+> access containers by name only!
 
 # Next step
 

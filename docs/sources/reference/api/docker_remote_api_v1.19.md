@@ -1252,12 +1252,12 @@ or being killed.
 
 Query Parameters:
 
--   **dockerfile** - path within the build context to the Dockerfile. This is 
+-   **dockerfile** - path within the build context to the Dockerfile. This is
         ignored if `remote` is specified and points to an individual filename.
 -   **t** – repository name (and optionally a tag) to be applied to
         the resulting image in case of success
--   **remote** – A Git repository URI or HTTP/HTTPS URI build source. If the 
-        URI specifies a filename, the file's contents are placed into a file 
+-   **remote** – A Git repository URI or HTTP/HTTPS URI build source. If the
+        URI specifies a filename, the file's contents are placed into a file
 		called `Dockerfile`.
 -   **q** – suppress verbose build output
 -   **nocache** – do not use the cache when building the image
@@ -1568,7 +1568,235 @@ Status Codes:
 -   **200** – no error
 -   **500** – server error
 
-## 2.3 Misc
+## 2.3 Networks
+
+### List networks
+
+`GET /networks`
+
+List networks
+
+**Example request**:
+
+        GET /networks HTTP/1.1
+
+**Example response**:
+
+        HTTP/1.1 200 OK
+        Content-Type: application/json
+
+<TODO>
+
+Query Parameters:
+
+-   **name** – Filter results with the given name
+-   **partial-id** – Filter results using the partial network ID
+
+Status Codes:
+
+-   **200** – no error
+-   **400** – bad parameter
+-   **500** – server error
+
+### Create a Network
+
+`POST /networks`
+
+**Example request**
+
+        POST /networks HTTP/1.1
+        Content-Type: application/json
+
+        {
+             "Resource": "test.txt"
+        }
+
+**Example Response**
+
+<TODO>
+
+Query Parameters:
+
+-   **name** – Filter results with the given name
+-   **partial-id** – Filter results using the partial network ID
+
+Status Codes:
+
+-   **200** – no error
+-   **400** – bad parameter
+-   **500** – server error
+
+### Get a network
+
+`GET /networks/<network_id>`
+
+Get a network
+
+**Example request**:
+
+        GET /networks/0984d158bd8ae108e4d6bc8fcabedf51da9a174b32cc777026d4a29045654951 HTTP/1.1
+
+**Example response**:
+
+        HTTP/1.1 200 OK
+        Content-Type: application/json
+
+<TODO>
+
+Status Codes:
+
+-   **200** – no error
+-   **400** – bad parameter
+-   **500** – server error
+
+### Delete a network
+
+`DELETE /networks/<network_id>`
+
+Delete a network
+
+**Example request**:
+
+        DELETE /networks/0984d158bd8ae108e4d6bc8fcabedf51da9a174b32cc777026d4a29045654951 HTTP/1.1
+
+**Example response**:
+
+        HTTP/1.1 200 OK
+        Content-Type: application/json
+
+<TODO>
+
+Status Codes:
+
+-   **200** – no error
+-   **400** – bad parameter
+-   **500** – server error
+
+### List a networks endpoints
+
+`GET /networks/<network_id>/endpoints`
+
+**Example request**
+
+        GET /networks/0984d158bd8ae108e4d6bc8fcabedf51da9a174b32cc777026d4a29045654951/endpoints HTTP/1.1
+
+**Example Response**
+
+<TODO>
+
+Query Parameters:
+
+-   **name** – Filter results with the given name
+-   **partial-id** – Filter results using the partial network ID
+
+Status Codes:
+
+-   **200** – no error
+-   **400** – bad parameter
+-   **500** – server error
+
+### Create an endpoint on a network
+
+`POST /networks/<network_id>/endpoints`
+
+**Example request**
+
+        POST /networks/0984d158bd8ae108e4d6bc8fcabedf51da9a174b32cc777026d4a29045654951/endpoints HTTP/1.1
+        Content-Type: application/json
+
+        {}
+
+**Example Response**
+
+<TODO>
+
+Status Codes:
+
+-   **200** – no error
+-   **400** – bad parameter
+-   **500** – server error
+
+### Get an endpoint
+
+`GET /networks/<network_id>/endpoints/<endpoint_id>`
+
+**Example request**
+
+        GET /networks/0984d158bd8ae108e4d6bc8fcabedf51da9a174b32cc777026d4a29045654951/endpoints/246002db9a6d5dfbe89baa85d9a2f8620fb0ea39591180a6990d30a990d2ea19 HTTP/1.1
+
+**Example Response**
+
+<TODO>
+
+Status Codes:
+
+-   **200** – no error
+-   **400** – bad parameter
+-   **404** - not found
+-   **500** – server error
+
+### Delete an endpoint
+
+`DELETE /networks/<network_id>/endpoints/<endpoint_id>`
+
+**Example request**
+
+        DELETE /networks/0984d158bd8ae108e4d6bc8fcabedf51da9a174b32cc777026d4a29045654951/endpoints/246002db9a6d5dfbe89baa85d9a2f8620fb0ea39591180a6990d30a990d2ea19 HTTP/1.1
+
+**Example Response**
+
+<TODO>
+
+Status Codes:
+
+-   **200** – no error
+-   **400** – bad parameter
+-   **404** - not found
+-   **500** – server error
+
+### Join an endpoint to a container
+
+`POST /networks/<network_id>/endpoints/<endpoint_id>/containers`
+
+**Example request**
+
+        POST /networks/0984d158bd8ae108e4d6bc8fcabedf51da9a174b32cc777026d4a29045654951/endpoints/246002db9a6d5dfbe89baa85d9a2f8620fb0ea39591180a6990d30a990d2ea19/containers HTTP/1.1
+        Content-Type: application/json
+
+        {}
+
+**Example response**
+
+        HTTP/1.1 200 OK
+
+Status Codes:
+
+-   **200** – no error
+-   **400** – bad parameter
+-   **404** - not found
+-   **500** – server error
+
+### Detach an endpoint from a container
+
+`DELETE /networks/<network_id>/endpoints/<endpoint_id>/containers/<container_id>`
+
+**Example request**
+
+        DELETE /networks/0984d158bd8ae108e4d6bc8fcabedf51da9a174b32cc777026d4a29045654951/endpoints/246002db9a6d5dfbe89baa85d9a2f8620fb0ea39591180a6990d30a990d2ea19/containers/f02e0fb4830cd910eef76938767796e86856a239c37453add74550507fa22c0f HTTP/1.1
+        Content-Type: application/json
+
+**Example response**
+
+        HTTP/1.1 200 OK
+
+Status Codes:
+
+-   **200** – no error
+-   **400** – bad parameter
+-   **404** - not found
+-   **500** – server error
+
+## 2.4 Misc
 
 ### Check auth configuration
 
@@ -2180,7 +2408,7 @@ This might change in the future.
 
 ## 3.3 CORS Requests
 
-To set cross origin requests to the remote api please give values to 
+To set cross origin requests to the remote api please give values to
 "--api-cors-header" when running docker in daemon mode. Set * will allow all,
 default or blank means CORS disabled
 

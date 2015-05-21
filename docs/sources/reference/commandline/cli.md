@@ -56,11 +56,11 @@ The Docker command line stores its configuration files in a directory called
 `.docker/config.json` file to control certain aspects of how the `docker`
 command behaves.
 
-Currently, you can modify the `docker` command behavior using environment 
-variables or command-line options. You can also use options within 
-`config.json` to modify some of the same behavior.  When using these 
-mechanisms, you must keep in mind the order of precedence among them. Command 
-line options override environment variables and environment variables override 
+Currently, you can modify the `docker` command behavior using environment
+variables or command-line options. You can also use options within
+`config.json` to modify some of the same behavior.  When using these
+mechanisms, you must keep in mind the order of precedence among them. Command
+line options override environment variables and environment variables override
 properties you specify in a `config.json` file.
 
 The `config.json` file stores a JSON encoding of a single `HttpHeaders`
@@ -477,14 +477,14 @@ You can configure the `native` (libcontainer) execdriver using options specified
 with the `--exec-opt` flag. All the flag's options have the `native` prefix. A
 single `native.cgroupdriver` option is available.
 
-The `native.cgroupdriver` option specifies the management of the container's 
-cgroups. You can specify `cgroupfs` or `systemd`. If you specify `systemd` and 
-it is not available, the system uses `cgroupfs`. By default, if no option is 
-specified, the execdriver first tries `systemd` and falls back to `cgroupfs`. 
+The `native.cgroupdriver` option specifies the management of the container's
+cgroups. You can specify `cgroupfs` or `systemd`. If you specify `systemd` and
+it is not available, the system uses `cgroupfs`. By default, if no option is
+specified, the execdriver first tries `systemd` and falls back to `cgroupfs`.
 This example sets the execdriver to `cgroupfs`:
 
     $ sudo docker -d --exec-opt native.cgroupdriver=cgroupfs
-     
+
 Setting this option applies to all containers the daemon launches.
 
 ### Daemon DNS options
@@ -884,7 +884,7 @@ you refer to it on the command line.
 
 When `docker build` is run with the `--cgroup-parent` option the containers used
 in the build will be run with the [corresponding `docker run`
-flag](/reference/run/#specifying-custom-cgroups). 
+flag](/reference/run/#specifying-custom-cgroups).
 
 
 ## commit
@@ -1290,8 +1290,8 @@ To see how the `docker:apache` image was added to a container's base image:
     $ docker history docker:scm
     IMAGE               CREATED             CREATED BY                                      SIZE                COMMENT
     2ac9d1098bf1        3 months ago        /bin/bash                                       241.4 MB            Added Apache to Fedora base image
-    88b42ffd1f7c        5 months ago        /bin/sh -c #(nop) ADD file:1fd8d7f9f6557cafc7   373.7 MB            
-    c69cab00d6ef        5 months ago        /bin/sh -c #(nop) MAINTAINER Lokesh Mandvekar   0 B                 
+    88b42ffd1f7c        5 months ago        /bin/sh -c #(nop) ADD file:1fd8d7f9f6557cafc7   373.7 MB
+    c69cab00d6ef        5 months ago        /bin/sh -c #(nop) MAINTAINER Lokesh Mandvekar   0 B
     511136ea3c5a        19 months ago                                                       0 B                 Imported from -
 
 
@@ -1659,6 +1659,38 @@ nano-second part of the timestamp will be padded with zero when necessary.
 The `--since` option shows logs of a container generated only after
 the given date, specified as RFC 3339 or UNIX timestamp. The `--since` option
 can be combined with the `--follow` and `--tail` options.
+
+## network
+
+    Usage: docker network [OPTIONS] COMMAND [OPTIONS] [arg...]
+
+    Commands:
+        create    Create a network
+        rm        Remove a network
+        ls        List all networks
+        info      Display information of a network
+
+    Run 'docker network COMMAND --help' for more information on a command.
+
+        --help=false       Print usage
+
+The `docker network` command is used to manage Networks.
+
+To create a network, `docker network create foo`. You can also specify a driver
+if you have loaded a networking plugin e.g `docker network create -d bar foo`
+
+`docker network ls` is used to display the currently configured networks
+
+<INSERT OUTPUT HERE>
+
+To get detailed information on a network, you can use the `docker network info`
+command.
+
+<EXAMPLE HERE>
+
+If you no longer have need of a network, you can delete it with `docker network rm`
+
+<EXAMPLE HERE>
 
 ## pause
 
