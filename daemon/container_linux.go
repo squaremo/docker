@@ -637,6 +637,8 @@ func (container *Container) buildCreateEndpointOptions() ([]libnetwork.EndpointO
 	var (
 		portSpecs     = make(nat.PortSet)
 		bindings      = make(nat.PortMap)
+		hostname      = container.Config.Hostname
+		domainname    = container.Config.Domainname
 		pbList        []types.PortBinding
 		exposeList    []types.TransportPort
 		createOptions []libnetwork.EndpointOption
@@ -713,6 +715,11 @@ func (container *Container) buildCreateEndpointOptions() ([]libnetwork.EndpointO
 
 		createOptions = append(createOptions, libnetwork.EndpointOptionGeneric(genericOption))
 	}
+
+	createOptions = append(createOptions, libnetwork.EndpointOptionGeneric(options.Generic{
+		"io.docker.network.hostname":   hostname,
+		"io.docker.network.domainname": domainname,
+	}))
 
 	return createOptions, nil
 }
