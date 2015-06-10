@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"testing"
+	"time"
 
 	"github.com/docker/libnetwork/netutils"
 	"github.com/vishvananda/netlink"
@@ -30,6 +31,11 @@ func newKey(t *testing.T) (string, error) {
 	if _, err := os.Create(name); err != nil {
 		return "", err
 	}
+
+	// Set the rpmCleanupPeriod to be low to make the test run quicker
+	gpmLock.Lock()
+	gpmCleanupPeriod = 2 * time.Second
+	gpmLock.Unlock()
 
 	return name, nil
 }
@@ -63,6 +69,13 @@ func newInfo(t *testing.T) (*Info, error) {
 	intf1.AddressIPv6 = addrv6
 	intf1.AddressIPv6.IP = ip6
 
+	_, route, err := net.ParseCIDR("192.168.2.1/32")
+	if err != nil {
+		return nil, err
+	}
+
+	intf1.Routes = []*net.IPNet{route}
+
 	veth = &netlink.Veth{
 		LinkAttrs: netlink.LinkAttrs{Name: vethName3, TxQLen: 0},
 		PeerName:  vethName4}
@@ -84,6 +97,7 @@ func newInfo(t *testing.T) (*Info, error) {
 
 	// ip6, addrv6, err := net.ParseCIDR("2001:DB8::ABCD/48")
 	ip6, addrv6, err = net.ParseCIDR("fe80::3/64")
+
 	if err != nil {
 		return nil, err
 	}
@@ -91,6 +105,7 @@ func newInfo(t *testing.T) (*Info, error) {
 	intf2.AddressIPv6.IP = ip6
 
 	sinfo := &Info{Interfaces: []*Interface{intf1, intf2}}
+
 	sinfo.Gateway = net.ParseIP("192.168.1.1")
 	// sinfo.GatewayIPv6 = net.ParseIP("2001:DB8::1")
 	sinfo.GatewayIPv6 = net.ParseIP("fe80::1")
@@ -127,13 +142,20 @@ func verifySandbox(t *testing.T, s Sandbox) {
 
 	_, err = netlink.LinkByName(sboxIfaceName + "0")
 	if err != nil {
-		t.Fatalf("Could not find the interface %s inside the sandbox: %v", sboxIfaceName,
+		t.Fatalf("Could not find the interface %s inside the sandbox: %v", sboxIfaceName+"0",
 			err)
 	}
 
 	_, err = netlink.LinkByName(sboxIfaceName + "1")
 	if err != nil {
-		t.Fatalf("Could not find the interface %s inside the sandbox: %v", sboxIfaceName,
+		t.Fatalf("Could not find the interface %s inside the sandbox: %v", sboxIfaceName+"1",
 			err)
+	}
+}
+
+func verifyCleanup(t *testing.T, s Sandbox) {
+	time.Sleep(time.Duration(gpmCleanupPeriod * 2))
+	if _, err := os.Stat(s.Key()); err == nil {
+		t.Fatalf("The sandbox path %s is not getting cleanup event after twice the cleanup period", s.Key())
 	}
 }

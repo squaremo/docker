@@ -33,6 +33,7 @@ docker-create - Create a new container
 [**--link**[=*[]*]]
 [**--lxc-conf**[=*[]*]]
 [**--log-driver**[=*[]*]]
+[**--log-opt**[=*[]*]]
 [**-m**|**--memory**[=*MEMORY*]]
 [**--memory-swap**[=*MEMORY-SWAP*]]
 [**--mac-address**[=*MAC-ADDRESS*]]
@@ -54,6 +55,16 @@ docker-create - Create a new container
 [**-w**|**--workdir**[=*WORKDIR*]]
 [**--cgroup-parent**[=*CGROUP-PATH*]]
 IMAGE [COMMAND] [ARG...]
+
+# DESCRIPTION
+
+Creates a writeable container layer over the specified image and prepares it for
+running the specified command. The container ID is then printed to STDOUT. This
+is similar to **docker run -d** except the container is never started. You can 
+then use the **docker start <container_id>** command to start the container at
+any point.
+
+The initial status of the container created with **docker create** is 'created'.
 
 # OPTIONS
 **-a**, **--attach**=[]
@@ -148,6 +159,9 @@ two memory nodes.
   Logging driver for container. Default is defined by daemon `--log-driver` flag.
   **Warning**: `docker logs` command works only for `json-file` logging driver.
 
+**--log-opt**=[]
+  Logging driver specific options.
+
 **-m**, **--memory**=""
    Memory limit (format: <number><optional unit>, where unit = b, k, m or g)
 
@@ -161,7 +175,7 @@ system's page size (the value would be very large, that's millions of trillions)
    Total memory limit (memory + swap)
 
    Set `-1` to disable swap (format: <number><optional unit>, where unit = b, k, m or g).
-This value should always larger than **-m**, so you should alway use this with **-m**.
+This value should always larger than **-m**, so you should always use this with **-m**.
 
 **--mac-address**=""
    Container MAC address (e.g. 92:d0:c6:0a:29:33)

@@ -611,7 +611,7 @@ ONBUILD ENTRYPOINT ["echo"]`,
 
 }
 
-func (s *DockerSuite) TestBuildCacheADD(c *check.C) {
+func (s *DockerSuite) TestBuildCacheAdd(c *check.C) {
 	name := "testbuildtwoimageswithadd"
 	server, err := fakeStorage(map[string]string{
 		"robots.txt": "hello",
@@ -1722,8 +1722,8 @@ func (s *DockerSuite) TestBuildWithInaccessibleFilesInContext(c *check.C) {
 			c.Fatalf("output should've contained the string: no permission to read from but contained: %s", out)
 		}
 
-		if !strings.Contains(out, "Error checking context is accessible") {
-			c.Fatalf("output should've contained the string: Error checking context is accessible")
+		if !strings.Contains(out, "Error checking context") {
+			c.Fatalf("output should've contained the string: Error checking context")
 		}
 	}
 	{
@@ -1759,8 +1759,8 @@ func (s *DockerSuite) TestBuildWithInaccessibleFilesInContext(c *check.C) {
 			c.Fatalf("output should've contained the string: can't access %s", out)
 		}
 
-		if !strings.Contains(out, "Error checking context is accessible") {
-			c.Fatalf("output should've contained the string: Error checking context is accessible")
+		if !strings.Contains(out, "Error checking context") {
+			c.Fatalf("output should've contained the string: Error checking context\ngot:%s", out)
 		}
 
 	}
@@ -2406,31 +2406,6 @@ func (s *DockerSuite) TestBuildExposeUpperCaseProto(c *check.C) {
 	}
 }
 
-func (s *DockerSuite) TestBuildExposeHostPort(c *check.C) {
-	// start building docker file with ip:hostPort:containerPort
-	name := "testbuildexpose"
-	expected := "map[5678/tcp:{}]"
-	_, out, err := buildImageWithOut(name,
-		`FROM scratch
-        EXPOSE 192.168.1.2:2375:5678`,
-		true)
-	if err != nil {
-		c.Fatal(err)
-	}
-
-	if !strings.Contains(out, "to map host ports to container ports (ip:hostPort:containerPort) is deprecated.") {
-		c.Fatal("Missing warning message")
-	}
-
-	res, err := inspectField(name, "Config.ExposedPorts")
-	if err != nil {
-		c.Fatal(err)
-	}
-	if res != expected {
-		c.Fatalf("Exposed ports %s, expected %s", res, expected)
-	}
-}
-
 func (s *DockerSuite) TestBuildEmptyEntrypointInheritance(c *check.C) {
 	name := "testbuildentrypointinheritance"
 	name2 := "testbuildentrypointinheritance2"
@@ -2674,7 +2649,7 @@ func (s *DockerSuite) TestBuildConditionalCache(c *check.C) {
 	}
 }
 
-func (s *DockerSuite) TestBuildADDLocalFileWithCache(c *check.C) {
+func (s *DockerSuite) TestBuildAddLocalFileWithCache(c *check.C) {
 	name := "testbuildaddlocalfilewithcache"
 	name2 := "testbuildaddlocalfilewithcache2"
 	dockerfile := `
@@ -2702,7 +2677,7 @@ func (s *DockerSuite) TestBuildADDLocalFileWithCache(c *check.C) {
 	}
 }
 
-func (s *DockerSuite) TestBuildADDMultipleLocalFileWithCache(c *check.C) {
+func (s *DockerSuite) TestBuildAddMultipleLocalFileWithCache(c *check.C) {
 	name := "testbuildaddmultiplelocalfilewithcache"
 	name2 := "testbuildaddmultiplelocalfilewithcache2"
 	dockerfile := `
@@ -2730,7 +2705,7 @@ func (s *DockerSuite) TestBuildADDMultipleLocalFileWithCache(c *check.C) {
 	}
 }
 
-func (s *DockerSuite) TestBuildADDLocalFileWithoutCache(c *check.C) {
+func (s *DockerSuite) TestBuildAddLocalFileWithoutCache(c *check.C) {
 	name := "testbuildaddlocalfilewithoutcache"
 	name2 := "testbuildaddlocalfilewithoutcache2"
 	dockerfile := `
@@ -2788,7 +2763,7 @@ func (s *DockerSuite) TestBuildCopyDirButNotFile(c *check.C) {
 	}
 }
 
-func (s *DockerSuite) TestBuildADDCurrentDirWithCache(c *check.C) {
+func (s *DockerSuite) TestBuildAddCurrentDirWithCache(c *check.C) {
 	name := "testbuildaddcurrentdirwithcache"
 	name2 := name + "2"
 	name3 := name + "3"
@@ -2852,7 +2827,7 @@ func (s *DockerSuite) TestBuildADDCurrentDirWithCache(c *check.C) {
 	}
 }
 
-func (s *DockerSuite) TestBuildADDCurrentDirWithoutCache(c *check.C) {
+func (s *DockerSuite) TestBuildAddCurrentDirWithoutCache(c *check.C) {
 	name := "testbuildaddcurrentdirwithoutcache"
 	name2 := "testbuildaddcurrentdirwithoutcache2"
 	dockerfile := `
@@ -2879,7 +2854,7 @@ func (s *DockerSuite) TestBuildADDCurrentDirWithoutCache(c *check.C) {
 	}
 }
 
-func (s *DockerSuite) TestBuildADDRemoteFileWithCache(c *check.C) {
+func (s *DockerSuite) TestBuildAddRemoteFileWithCache(c *check.C) {
 	name := "testbuildaddremotefilewithcache"
 	server, err := fakeStorage(map[string]string{
 		"baz": "hello",
@@ -2910,7 +2885,7 @@ func (s *DockerSuite) TestBuildADDRemoteFileWithCache(c *check.C) {
 	}
 }
 
-func (s *DockerSuite) TestBuildADDRemoteFileWithoutCache(c *check.C) {
+func (s *DockerSuite) TestBuildAddRemoteFileWithoutCache(c *check.C) {
 	name := "testbuildaddremotefilewithoutcache"
 	name2 := "testbuildaddremotefilewithoutcache2"
 	server, err := fakeStorage(map[string]string{
@@ -2942,7 +2917,7 @@ func (s *DockerSuite) TestBuildADDRemoteFileWithoutCache(c *check.C) {
 	}
 }
 
-func (s *DockerSuite) TestBuildADDRemoteFileMTime(c *check.C) {
+func (s *DockerSuite) TestBuildAddRemoteFileMTime(c *check.C) {
 	name := "testbuildaddremotefilemtime"
 	name2 := name + "2"
 	name3 := name + "3"
@@ -3013,7 +2988,7 @@ func (s *DockerSuite) TestBuildADDRemoteFileMTime(c *check.C) {
 	}
 }
 
-func (s *DockerSuite) TestBuildADDLocalAndRemoteFilesWithCache(c *check.C) {
+func (s *DockerSuite) TestBuildAddLocalAndRemoteFilesWithCache(c *check.C) {
 	name := "testbuildaddlocalandremotefilewithcache"
 	server, err := fakeStorage(map[string]string{
 		"baz": "hello",
@@ -3095,7 +3070,7 @@ func (s *DockerSuite) TestBuildNoContext(c *check.C) {
 }
 
 // TODO: TestCaching
-func (s *DockerSuite) TestBuildADDLocalAndRemoteFilesWithoutCache(c *check.C) {
+func (s *DockerSuite) TestBuildAddLocalAndRemoteFilesWithoutCache(c *check.C) {
 	name := "testbuildaddlocalandremotefilewithoutcache"
 	name2 := "testbuildaddlocalandremotefilewithoutcache2"
 	server, err := fakeStorage(map[string]string{
@@ -3215,7 +3190,7 @@ func (s *DockerSuite) TestBuildForbiddenContextPath(c *check.C) {
 
 }
 
-func (s *DockerSuite) TestBuildADDFileNotFound(c *check.C) {
+func (s *DockerSuite) TestBuildAddFileNotFound(c *check.C) {
 	name := "testbuildaddnotfound"
 	ctx, err := fakeContext(`FROM scratch
         ADD foo /usr/local/bar`,
@@ -3676,12 +3651,49 @@ func (s *DockerSuite) TestBuildDockerignoringWholeDir(c *check.C) {
 		".gitignore":    "",
 		".dockerignore": ".*\n",
 	})
+	c.Assert(err, check.IsNil)
 	defer ctx.Close()
-	if err != nil {
-		c.Fatal(err)
-	}
 	if _, err = buildImageFromContext(name, ctx, true); err != nil {
 		c.Fatal(err)
+	}
+
+	c.Assert(ctx.Add(".dockerfile", "*"), check.IsNil)
+	if _, err = buildImageFromContext(name, ctx, true); err != nil {
+		c.Fatal(err)
+	}
+
+	c.Assert(ctx.Add(".dockerfile", "."), check.IsNil)
+	if _, err = buildImageFromContext(name, ctx, true); err != nil {
+		c.Fatal(err)
+	}
+
+	c.Assert(ctx.Add(".dockerfile", "?"), check.IsNil)
+	if _, err = buildImageFromContext(name, ctx, true); err != nil {
+		c.Fatal(err)
+	}
+}
+
+func (s *DockerSuite) TestBuildDockerignoringBadExclusion(c *check.C) {
+	name := "testbuilddockerignorewholedir"
+	dockerfile := `
+        FROM busybox
+		COPY . /
+		RUN [[ ! -e /.gitignore ]]
+		RUN [[ -f /Makefile ]]`
+	ctx, err := fakeContext(dockerfile, map[string]string{
+		"Dockerfile":    "FROM scratch",
+		"Makefile":      "all:",
+		".gitignore":    "",
+		".dockerignore": "!\n",
+	})
+	c.Assert(err, check.IsNil)
+	defer ctx.Close()
+	if _, err = buildImageFromContext(name, ctx, true); err == nil {
+		c.Fatalf("Build was supposed to fail but didn't")
+	}
+
+	if err.Error() != "failed to build the image: Error checking context: 'Illegal exclusion pattern: !'.\n" {
+		c.Fatalf("Incorrect output, got:%q", err.Error())
 	}
 }
 
@@ -5267,69 +5279,6 @@ RUN [ "/hello" ]`, map[string]string{})
 
 	if !strings.Contains(out, "Hello from Docker") {
 		c.Fatalf("bad output: %s", out)
-	}
-
-}
-
-func (s *DockerSuite) TestBuildResourceConstraintsAreUsed(c *check.C) {
-	name := "testbuildresourceconstraints"
-
-	ctx, err := fakeContext(`
-	FROM hello-world:frozen
-	RUN ["/hello"]
-	`, map[string]string{})
-	if err != nil {
-		c.Fatal(err)
-	}
-
-	cmd := exec.Command(dockerBinary, "build", "--no-cache", "--rm=false", "--memory=64m", "--memory-swap=-1", "--cpuset-cpus=0", "--cpuset-mems=0", "--cpu-shares=100", "--cpu-quota=8000", "-t", name, ".")
-	cmd.Dir = ctx.Dir
-
-	out, _, err := runCommandWithOutput(cmd)
-	if err != nil {
-		c.Fatal(err, out)
-	}
-	out, _ = dockerCmd(c, "ps", "-lq")
-
-	cID := strings.TrimSpace(out)
-
-	type hostConfig struct {
-		Memory     int64
-		MemorySwap int64
-		CpusetCpus string
-		CpusetMems string
-		CpuShares  int64
-		CpuQuota   int64
-	}
-
-	cfg, err := inspectFieldJSON(cID, "HostConfig")
-	if err != nil {
-		c.Fatal(err)
-	}
-
-	var c1 hostConfig
-	if err := json.Unmarshal([]byte(cfg), &c1); err != nil {
-		c.Fatal(err, cfg)
-	}
-	if c1.Memory != 67108864 || c1.MemorySwap != -1 || c1.CpusetCpus != "0" || c1.CpusetMems != "0" || c1.CpuShares != 100 || c1.CpuQuota != 8000 {
-		c.Fatalf("resource constraints not set properly:\nMemory: %d, MemSwap: %d, CpusetCpus: %s, CpusetMems: %s, CpuShares: %d, CpuQuota: %d",
-			c1.Memory, c1.MemorySwap, c1.CpusetCpus, c1.CpusetMems, c1.CpuShares, c1.CpuQuota)
-	}
-
-	// Make sure constraints aren't saved to image
-	_, _ = dockerCmd(c, "run", "--name=test", name)
-
-	cfg, err = inspectFieldJSON("test", "HostConfig")
-	if err != nil {
-		c.Fatal(err)
-	}
-	var c2 hostConfig
-	if err := json.Unmarshal([]byte(cfg), &c2); err != nil {
-		c.Fatal(err, cfg)
-	}
-	if c2.Memory == 67108864 || c2.MemorySwap == -1 || c2.CpusetCpus == "0" || c2.CpusetMems == "0" || c2.CpuShares == 100 || c2.CpuQuota == 8000 {
-		c.Fatalf("resource constraints leaked from build:\nMemory: %d, MemSwap: %d, CpusetCpus: %s, CpusetMems: %s, CpuShares: %d, CpuQuota: %d",
-			c2.Memory, c2.MemorySwap, c2.CpusetCpus, c2.CpusetMems, c2.CpuShares, c2.CpuQuota)
 	}
 
 }

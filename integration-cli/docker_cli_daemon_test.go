@@ -1156,3 +1156,29 @@ func (s *DockerDaemonSuite) TestCleanupMountsAfterCrash(c *check.C) {
 	c.Assert(err, check.IsNil, check.Commentf("Output: %s", mountOut))
 	c.Assert(strings.Contains(string(mountOut), id), check.Equals, false, check.Commentf("Something mounted from older daemon start: %s", mountOut))
 }
+
+func (s *DockerDaemonSuite) TestRunContainerWithBridgeNone(c *check.C) {
+	testRequires(c, NativeExecDriver)
+	c.Assert(s.d.StartWithBusybox("-b", "none"), check.IsNil)
+
+	out, err := s.d.Cmd("run", "--rm", "busybox", "ip", "l")
+	c.Assert(err, check.IsNil, check.Commentf("Output: %s", out))
+	c.Assert(strings.Contains(out, "eth0"), check.Equals, false,
+		check.Commentf("There shouldn't be eth0 in container when network is disabled: %s", out))
+}
+
+func (s *DockerDaemonSuite) TestDaemonRestartWithContainerRunning(t *check.C) {
+	if err := s.d.StartWithBusybox(); err != nil {
+		t.Fatal(err)
+	}
+	if out, err := s.d.Cmd("run", "-ti", "-d", "--name", "test", "busybox"); err != nil {
+		t.Fatal(out, err)
+	}
+	if err := s.d.Restart(); err != nil {
+		t.Fatal(err)
+	}
+	// Container 'test' should be removed without error
+	if out, err := s.d.Cmd("rm", "test"); err != nil {
+		t.Fatal(out, err)
+	}
+}

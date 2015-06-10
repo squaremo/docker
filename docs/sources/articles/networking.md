@@ -592,7 +592,7 @@ Therefore the router thinks it can talk to these containers directly.
 
 As soon as the router wants to send an IPv6 packet to the first container it
 will transmit a neighbor solicitation request, asking, who has
-`2001:db8::c009`? But it will get no answer because noone on this subnet has
+`2001:db8::c009`? But it will get no answer because no one on this subnet has
 this address. The container with this address is hidden behind the Docker host.
 The Docker host has to listen to neighbor solicitation requests for the container
 address and send a response that itself is the device that is responsible for
@@ -617,7 +617,8 @@ device to the container network:
 
 You have to execute the `ip -6 neigh add proxy ...` command for every IPv6
 address in your Docker subnet. Unfortunately there is no functionality for
-adding a whole subnet by executing one command.
+adding a whole subnet by executing one command. An alternative approach would be to
+use an NDP proxy daemon such as [ndppd](https://github.com/DanielAdolfsson/ndppd).
 
 ### Docker IPv6 cluster
 

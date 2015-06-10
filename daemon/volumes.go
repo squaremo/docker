@@ -8,10 +8,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/docker/docker/daemon/execdriver"
 	"github.com/docker/docker/pkg/chrootarchive"
 	"github.com/docker/docker/runconfig"
 	"github.com/docker/docker/volume"
+	"github.com/docker/libcontainer/label"
 )
 
 type mountPoint struct {
@@ -21,6 +21,7 @@ type mountPoint struct {
 	RW          bool
 	Volume      volume.Volume `json:"-"`
 	Source      string
+	Relabel     string
 }
 
 func (m *mountPoint) Setup() (string, error) {
@@ -51,7 +52,7 @@ func (m *mountPoint) Path() string {
 	return m.Source
 }
 
-func parseBindMount(spec string, config *runconfig.Config) (*mountPoint, error) {
+func parseBindMount(spec string, mountLabel string, config *runconfig.Config) (*mountPoint, error) {
 	bind := &mountPoint{
 		RW: true,
 	}
@@ -62,15 +63,18 @@ func parseBindMount(spec string, config *runconfig.Config) (*mountPoint, error) 
 		bind.Destination = arr[1]
 	case 3:
 		bind.Destination = arr[1]
-		if !validMountMode(arr[2]) {
-			return nil, fmt.Errorf("invalid mode for volumes-from: %s", arr[2])
+		mode := arr[2]
+		if !validMountMode(mode) {
+			return nil, fmt.Errorf("invalid mode for volumes-from: %s", mode)
 		}
-		bind.RW = arr[2] == "rw"
+		bind.RW = rwModes[mode]
+		// Relabel will apply a SELinux label, if necessary
+		bind.Relabel = mode
 	default:
 		return nil, fmt.Errorf("Invalid volume specification: %s", spec)
 	}
 
-	name, source, err := parseVolumeSource(arr[0], config)
+	name, source, err := parseVolumeSource(arr[0])
 	if err != nil {
 		return nil, err
 	}
@@ -107,26 +111,28 @@ func parseVolumesFrom(spec string) (string, string, error) {
 	return id, mode, nil
 }
 
-func validMountMode(mode string) bool {
-	validModes := map[string]bool{
-		"rw": true,
-		"ro": true,
-	}
-	return validModes[mode]
+// read-write modes
+var rwModes = map[string]bool{
+	"rw":   true,
+	"rw,Z": true,
+	"rw,z": true,
+	"z,rw": true,
+	"Z,rw": true,
+	"Z":    true,
+	"z":    true,
 }
 
-func (container *Container) specialMounts() []execdriver.Mount {
-	var mounts []execdriver.Mount
-	if container.ResolvConfPath != "" {
-		mounts = append(mounts, execdriver.Mount{Source: container.ResolvConfPath, Destination: "/etc/resolv.conf", Writable: !container.hostConfig.ReadonlyRootfs, Private: true})
-	}
-	if container.HostnamePath != "" {
-		mounts = append(mounts, execdriver.Mount{Source: container.HostnamePath, Destination: "/etc/hostname", Writable: !container.hostConfig.ReadonlyRootfs, Private: true})
-	}
-	if container.HostsPath != "" {
-		mounts = append(mounts, execdriver.Mount{Source: container.HostsPath, Destination: "/etc/hosts", Writable: !container.hostConfig.ReadonlyRootfs, Private: true})
-	}
-	return mounts
+// read-only modes
+var roModes = map[string]bool{
+	"ro":   true,
+	"ro,Z": true,
+	"ro,z": true,
+	"z,ro": true,
+	"Z,ro": true,
+}
+
+func validMountMode(mode string) bool {
+	return roModes[mode] || rwModes[mode]
 }
 
 func copyExistingContents(source, destination string) error {
@@ -195,7 +201,7 @@ func (daemon *Daemon) registerMountPoints(container *Container, hostConfig *runc
 	// 3. Read bind mounts
 	for _, b := range hostConfig.Binds {
 		// #10618
-		bind, err := parseBindMount(b, container.Config)
+		bind, err := parseBindMount(b, container.MountLabel, container.Config)
 		if err != nil {
 			return err
 		}
@@ -205,25 +211,36 @@ func (daemon *Daemon) registerMountPoints(container *Container, hostConfig *runc
 		}
 
 		if len(bind.Name) > 0 && len(bind.Driver) > 0 {
+			// create the volume
 			v, err := createVolume(bind.Name, bind.Driver)
 			if err != nil {
 				return err
 			}
 			bind.Volume = v
+			bind.Source = v.Path()
+			// Since this is just a named volume and not a typical bind, set to shared mode `z`
+			if bind.Relabel == "" {
+				bind.Relabel = "z"
+			}
 		}
 
+		if err := label.Relabel(bind.Source, container.MountLabel, bind.Relabel); err != nil {
+			return err
+		}
 		binds[bind.Destination] = true
 		mountPoints[bind.Destination] = bind
 	}
 
+	container.Lock()
 	container.MountPoints = mountPoints
+	container.Unlock()
 
 	return nil
 }
 
-// verifyOldVolumesInfo ports volumes configured for the containers pre docker 1.7.
+// verifyVolumesInfo ports volumes configured for the containers pre docker 1.7.
 // It reads the container configuration and creates valid mount points for the old volumes.
-func (daemon *Daemon) verifyOldVolumesInfo(container *Container) error {
+func (daemon *Daemon) verifyVolumesInfo(container *Container) error {
 	jsonPath, err := container.jsonPath()
 	if err != nil {
 		return err
@@ -251,12 +268,19 @@ func (daemon *Daemon) verifyOldVolumesInfo(container *Container) error {
 
 	for destination, hostPath := range vols.Volumes {
 		vfsPath := filepath.Join(daemon.root, "vfs", "dir")
+		rw := vols.VolumesRW != nil && vols.VolumesRW[destination]
 
 		if strings.HasPrefix(hostPath, vfsPath) {
 			id := filepath.Base(hostPath)
-
-			rw := vols.VolumesRW != nil && vols.VolumesRW[destination]
 			container.addLocalMountPoint(id, destination, rw)
+		} else { // Bind mount
+			id, source, err := parseVolumeSource(hostPath)
+			// We should not find an error here coming
+			// from the old configuration, but who knows.
+			if err != nil {
+				return err
+			}
+			container.addBindMountPoint(id, source, destination, rw)
 		}
 	}
 
@@ -265,7 +289,6 @@ func (daemon *Daemon) verifyOldVolumesInfo(container *Container) error {
 
 func createVolume(name, driverName string) (volume.Volume, error) {
 	vd, err := getVolumeDriver(driverName)
-
 	if err != nil {
 		return nil, err
 	}
