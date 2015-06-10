@@ -168,7 +168,7 @@ func (d *driver) Join(nid, eid types.UUID, sboxKey string, jinfo driverapi.JoinI
 			return fmt.Errorf("no correlating interface %d in supplied interface names", i)
 		}
 		supplied := ifaceNames[i]
-		if err := iface.SetNames(supplied.SrcName, supplied.DstName); err != nil {
+		if err := iface.SetNames(supplied.SrcName, supplied.DstPrefix); err != nil {
 			return errorWithRollback(fmt.Sprintf("failed to set interface name: %s", err), d.Leave(nid, eid))
 		}
 	}
@@ -188,6 +188,17 @@ func (d *driver) Join(nid, eid types.UUID, sboxKey string, jinfo driverapi.JoinI
 		}
 		if jinfo.SetGatewayIPv6(addr) != nil {
 			return errorWithRollback(fmt.Sprintf("failed to set gateway IPv6: %v", addr), d.Leave(nid, eid))
+		}
+	}
+	if len(res.StaticRoutes) > 0 {
+		routes, err := res.parseStaticRoutes()
+		if err != nil {
+			return err
+		}
+		for _, route := range routes {
+			if jinfo.AddStaticRoute(route.Destination, route.RouteType, route.NextHop, route.InterfaceID) != nil {
+				return errorWithRollback(fmt.Sprintf("failed to set static route: %v", route), d.Leave(nid, eid))
+			}
 		}
 	}
 	if jinfo.SetHostsPath(res.HostsPath) != nil {
