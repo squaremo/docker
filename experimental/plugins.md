@@ -11,8 +11,8 @@ Plugins extend Docker's functionality.  They come in specific types.  For
 example, a [volume plugin](/experimental/plugins_volume.md) might enable Docker
 volumes to persist across multiple Docker hosts.
 
-Currently Docker supports volume plugins. In the future it will support
-additional plugin types.
+Currently Docker supports volume and network driver plugins. In the future it
+will support additional plugin types.
 
 ## Installing a plugin
 
@@ -26,6 +26,9 @@ The following plugins exist:
 which provides multi-host portable volumes for Docker, enabling you to run
   databases and other stateful containers and move them around across a cluster
   of machines.
+
+* The [Weave plugin](https://github.com/weaveworks/docker-plugin) is a network
+  driver plugin which provides a virtual, multi-host network for containers.
 
 ## Troubleshooting a plugin
 
